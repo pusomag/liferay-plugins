@@ -18,6 +18,20 @@ AUI().use(
 		var NOTIFICATIONS_ALLOWED = 0;
 		var NOTIFICATIONS_NOT_ALLOWED = 1;
 
+		var NOTIFICATIONS_LIST = new Array();
+
+		var onbeforeunload = window.onbeforeunload;
+
+		window.onbeforeunload = function() {
+			if (typeof onbeforeunload === 'function') {
+				onbeforeunload.apply(this);
+			}
+
+			for (var i = 0; i < NOTIFICATIONS_LIST.length; i++) {
+				NOTIFICATIONS_LIST[i].cancel();
+			}
+		};
+
 		var STR_NEW_MESSAGE = Liferay.Language.get('new-message-from-x');
 
 		Liferay.namespace('Chat');
@@ -694,11 +708,15 @@ AUI().use(
 				if (NOTIFICATIONS && NOTIFICATIONS.checkPermission() === NOTIFICATIONS_ALLOWED) {
 					var notification = NOTIFICATIONS.createNotification(iconUrl, title, body);
 
+					NOTIFICATIONS_LIST.splice(NOTIFICATIONS_LIST.length, 0, notification);
+
 					notification.show();
 
 					setTimeout(
 						function() {
 							notification.cancel();
+
+							NOTIFICATIONS_LIST.splice(0, 1);
 						},
 						instance._notificationTimeout
 					);
